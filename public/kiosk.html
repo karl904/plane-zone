@@ -16,7 +16,6 @@
       --shadow: 0 14px 30px rgba(0,0,0,.38);
       --r: 18px;
       --btn: rgba(255,255,255,.08);
-      --btn2: rgba(56,189,248,.16);
     }
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
@@ -38,7 +37,7 @@
       gap:10px;
     }
 
-    /* 320x480 portrait friendly */
+    /* screens */
     .screen{
       display:none;
       height:100%;
@@ -52,7 +51,7 @@
       to{ opacity:1; transform: translateY(0); }
     }
 
-    /* Header */
+    /* header */
     .top{
       display:flex;
       align-items:center;
@@ -82,7 +81,7 @@
     .dot.ok{ background: var(--accent2); box-shadow:0 0 12px rgba(34,197,94,.55); }
     .dot.bad{ background: #ef4444; box-shadow:0 0 12px rgba(239,68,68,.55); }
 
-    /* Cards */
+    /* cards */
     .card{
       border:1px solid var(--border);
       background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
@@ -91,7 +90,7 @@
       padding: 12px;
     }
 
-    /* Clock screen */
+    /* clock screen */
     .clockBox{
       flex:1;
       display:flex;
@@ -119,6 +118,7 @@
       color:var(--text);
       font-weight:900;
       opacity:.95;
+      text-transform: capitalize;
     }
     .subdate{
       font-size:12px;
@@ -127,11 +127,8 @@
       margin-top:2px;
     }
 
-    /* Buttons */
-    .btnRow{
-      display:flex;
-      gap:10px;
-    }
+    /* buttons */
+    .btnRow{ display:flex; gap:10px; }
     .btn{
       flex:1;
       border:1px solid var(--border);
@@ -152,16 +149,16 @@
     }
     .btn:active{ transform: translateY(1px); }
 
-    /* Flight screen */
+    /* flight screen (compact) */
     .headline{
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
       gap:10px;
       margin-bottom:10px;
     }
     .callsign{
-      font-size:22px;
+      font-size:26px;
       font-weight:1000;
       letter-spacing:.4px;
       line-height:1.05;
@@ -170,7 +167,8 @@
       margin-top:6px;
       font-size:12px;
       color:var(--muted);
-      font-weight:800;
+      font-weight:900;
+      line-height:1.2;
     }
     .logo{
       width:38px; height:38px;
@@ -182,37 +180,6 @@
       border:1px solid rgba(0,0,0,.06);
       display:none;
     }
-
-    .planeBox{
-      border:1px solid rgba(56,189,248,.22);
-      background: linear-gradient(180deg, rgba(56,189,248,.14), rgba(255,255,255,.03));
-      border-radius: 16px;
-      padding: 10px;
-      margin-bottom:10px;
-    }
-    .planeMeta{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:8px;
-      margin-bottom:6px;
-      font-size:12px;
-      color:var(--muted);
-      font-weight:800;
-    }
-    .tag{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:5px 9px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background: rgba(0,0,0,.14);
-      color: var(--text);
-      font-weight:900;
-    }
-    .planeSvg svg{ width:100%; height:auto; max-height:64px; display:block; }
-    .planeSvg path{ fill:#dbeafe; opacity:.94; }
 
     .route{
       display:grid;
@@ -226,23 +193,26 @@
       margin-bottom:10px;
     }
     .label{ font-size:11px; color:var(--muted); font-weight:900; text-transform:uppercase; letter-spacing:.3px; margin-bottom:4px;}
-    .val{ font-size:13px; font-weight:900; line-height:1.15; word-break:break-word;}
+    .val{ font-size:13px; font-weight:1000; line-height:1.15; word-break:break-word;}
     .arrow{ text-align:center; color: var(--accent); font-weight:1000; font-size:16px; }
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:8px;
-    }
-    .kv{
-      padding:10px;
+    .modelBox{
       border-radius: 16px;
       background: rgba(255,255,255,.03);
       border:1px solid var(--border);
-      min-width:0;
+      padding: 12px;
+      text-align:center;
     }
-    .k{ font-size:11px; color:var(--muted); font-weight:900; text-transform:uppercase; letter-spacing:.3px;}
-    .v{ margin-top:4px; font-size:13px; font-weight:1000; line-height:1.15; word-break:break-word; }
+    .modelBox .k{
+      font-size:11px; color:var(--muted); font-weight:900; text-transform:uppercase; letter-spacing:.3px;
+    }
+    .modelBox .v{
+      margin-top:6px;
+      font-size:18px;
+      font-weight:1000;
+      letter-spacing:.2px;
+      line-height:1.1;
+    }
 
     .err{
       color:#fecaca;
@@ -254,11 +224,11 @@
 
     /* animation when plane changes */
     .pulse{
-      animation: pulseIn .55s ease-out;
+      animation: pulseIn .50s ease-out;
     }
     @keyframes pulseIn{
-      from{ transform: translateY(8px); opacity: .0; filter: blur(2px); }
-      to{ transform: translateY(0); opacity: 1; filter: blur(0); }
+      from{ transform: translateY(6px); opacity: .0; }
+      to{ transform: translateY(0); opacity: 1; }
     }
   </style>
 </head>
@@ -294,19 +264,14 @@
 
       <div class="card" id="flightCard">
         <div class="headline">
-          <div>
+          <div style="min-width:0">
             <div class="callsign" id="callsign">—</div>
-            <div class="sub">callsign_iata: <span id="callsign_iata">—</span> · airline: <span id="airline_name">—</span></div>
+            <div class="sub">
+              callsign_iata: <span id="callsign_iata">—</span><br>
+              airline: <span id="airline_name">—</span>
+            </div>
           </div>
           <img id="logo" class="logo" alt="logo" />
-        </div>
-
-        <div class="planeBox">
-          <div class="planeMeta">
-            <span class="tag" id="typeTag">Aircraft</span>
-            <span id="hex">hex: —</span>
-          </div>
-          <div class="planeSvg" id="planeSvg"></div>
         </div>
 
         <div class="route">
@@ -321,23 +286,9 @@
           </div>
         </div>
 
-        <div class="grid">
-          <div class="kv">
-            <div class="k">Modello</div>
-            <div class="v" id="model">—</div>
-          </div>
-          <div class="kv">
-            <div class="k">Tipo</div>
-            <div class="v" id="type">—</div>
-          </div>
-          <div class="kv">
-            <div class="k">Lat</div>
-            <div class="v" id="lat">—</div>
-          </div>
-          <div class="kv">
-            <div class="k">Lon</div>
-            <div class="v" id="lon">—</div>
-          </div>
+        <div class="modelBox">
+          <div class="k">Modello aereo</div>
+          <div class="v" id="model">—</div>
         </div>
 
         <div class="err" id="err"></div>
@@ -352,43 +303,19 @@
   </div>
 
 <script>
-  // ----- SVG silhouettes (neutral) -----
-  const SVG = {
-    narrow: `<svg viewBox="0 0 900 140" xmlns="http://www.w3.org/2000/svg"><path d="M95 82c0-8 8-14 18-14h240l80-26c22-7 54-12 86-12h68c32 0 64 5 86 12l80 26h138c10 0 18 6 18 14s-8 14-18 14H740l-80 30c-18 7-44 12-70 12H310c-26 0-52-5-70-12l-80-30H113c-10 0-18-6-18-14zM330 50l44-20h152l44 20H330z"/></svg>`,
-    wide: `<svg viewBox="0 0 900 140" xmlns="http://www.w3.org/2000/svg"><path d="M70 82c0-9 9-16 20-16h270l92-30c20-7 46-12 72-12h52c26 0 52 5 72 12l92 30h128c11 0 20 7 20 16s-9 16-20 16H760l-96 34c-18 7-40 12-60 12H296c-20 0-42-5-60-12L140 98H90c-11 0-20-7-20-16zM300 52l52-24h196l52 24H300z"/></svg>`,
-    regional: `<svg viewBox="0 0 900 140" xmlns="http://www.w3.org/2000/svg"><path d="M120 82c0-8 8-14 18-14h190l64-20c16-5 38-8 58-8h92c20 0 42 3 58 8l64 20h160c10 0 18 6 18 14s-8 14-18 14H690l-62 26c-14 6-34 10-54 10H326c-20 0-40-4-54-10l-62-26H138c-10 0-18-6-18-14z"/></svg>`,
-    turboprop: `<svg viewBox="0 0 900 140" xmlns="http://www.w3.org/2000/svg"><path d="M135 82c0-8 8-14 18-14h170l54-16c14-4 32-6 50-6h96c18 0 36 2 50 6l54 16h190c10 0 18 6 18 14s-8 14-18 14H705l-52 24c-12 6-30 10-46 10H293c-16 0-34-4-46-10l-52-24H153c-10 0-18-6-18-14z"/></svg>`,
-    unknown: `<svg viewBox="0 0 900 140" xmlns="http://www.w3.org/2000/svg"><path d="M140 82c0-8 8-14 18-14h584c10 0 18 6 18 14s-8 14-18 14H158c-10 0-18-6-18-14z"/></svg>`
-  };
-
-  function category(t){
-    const x = (t||"").toUpperCase().trim();
-    const wide = new Set(["A332","A333","A338","A339","A359","A35K","A388","B744","B748","B772","B773","B77W","B788","B789","B78X","MD11","DC10"]);
-    const narrow = new Set(["A318","A319","A320","A321","A20N","A21N","B736","B737","B738","B739","B37M","B38M","B39M"]);
-    const regional = new Set(["E170","E175","E190","E195","E290","E295","CRJ2","CRJ7","CRJ9","CRJX","SU95","ARJ2"]);
-    const turboprop = new Set(["AT43","AT45","AT72","AT75","AT76","DH8A","DH8B","DH8C","DH8D","DHC6","SF34","BE20"]);
-    if (wide.has(x)) return "wide";
-    if (narrow.has(x)) return "narrow";
-    if (regional.has(x)) return "regional";
-    if (turboprop.has(x)) return "turboprop";
-    return "unknown";
-  }
-
-  function fmtAirport(x){
-    if(!x) return "N/D";
-    const m = x.municipality || "—";
-    const n = x.name || "—";
-    return `${m} — ${n}`;
-  }
-
   function iataFromCallsignIata(csIata){
     if(!csIata || typeof csIata !== "string") return null;
     const code = csIata.trim().slice(0,2).toUpperCase();
     return /^[A-Z0-9]{2}$/.test(code) ? code : null;
   }
-
   function airhexLogoUrl(iata){
     return `https://content.airhex.com/content/logos/airlines_${iata}_200_200_r.png`;
+  }
+  function fmtAirport(x){
+    if(!x) return "N/D";
+    const m = x.municipality || "—";
+    const n = x.name || "—";
+    return `${m} — ${n}`;
   }
 
   function setNet(ok, msg){
@@ -408,7 +335,7 @@
     }
   }
 
-  // ----- Screens -----
+  // screens
   const screenClock = document.getElementById("screenClock");
   const screenFlight = document.getElementById("screenFlight");
   const flightCard = document.getElementById("flightCard");
@@ -426,11 +353,10 @@
     showFlight();
     await fetchPlanes(true);
   });
-
   document.getElementById("btnBack").addEventListener("click", () => showClock());
   document.getElementById("btnRefresh").addEventListener("click", () => fetchPlanes(true));
 
-  // ----- Clock -----
+  // clock
   function tickClock(){
     const d = new Date();
     const hh = String(d.getHours()).padStart(2,"0");
@@ -438,15 +364,15 @@
     const ss = String(d.getSeconds()).padStart(2,"0");
     document.getElementById("time").textContent = `${hh}:${mm}`;
     document.getElementById("seconds").textContent = `${ss} sec`;
-
-    const pretty = d.toLocaleDateString("it-IT", { weekday:"long", day:"2-digit", month:"long" });
-    document.getElementById("datePretty").textContent = pretty;
-    document.getElementById("dateSmall").textContent = d.toLocaleDateString("it-IT", { year:"numeric" });
+    document.getElementById("datePretty").textContent =
+      d.toLocaleDateString("it-IT", { weekday:"long", day:"2-digit", month:"long" });
+    document.getElementById("dateSmall").textContent =
+      d.toLocaleDateString("it-IT", { year:"numeric" });
   }
   tickClock();
   setInterval(tickClock, 1000);
 
-  // ----- Flight selection -----
+  // pick plane
   function pickFeatured(planes){
     if(!planes || !planes.length) return null;
     const withRoute = planes.filter(p => p.from && p.to && p.airline_name);
@@ -466,18 +392,11 @@
       document.getElementById("fromTxt").textContent = "—";
       document.getElementById("toTxt").textContent = "—";
       document.getElementById("model").textContent = "—";
-      document.getElementById("type").textContent = "—";
-      document.getElementById("lat").textContent = "—";
-      document.getElementById("lon").textContent = "—";
-      document.getElementById("hex").textContent = "hex: —";
-      document.getElementById("typeTag").textContent = "Aircraft";
-      document.getElementById("planeSvg").innerHTML = SVG.unknown;
-      const logo = document.getElementById("logo");
-      logo.style.display="none";
+      document.getElementById("logo").style.display = "none";
       return;
     }
 
-    const key = `${p.icao24||""}|${p.callsign||""}|${p.callsign_iata||""}|${p.airline_name||""}|${p.from?.name||""}|${p.to?.name||""}`;
+    const key = `${p.icao24||""}|${p.callsign||""}|${p.callsign_iata||""}|${p.airline_name||""}|${p.from?.name||""}|${p.to?.name||""}|${p.aircraft_model||""}`;
     if(key !== lastKey){
       flightCard.classList.remove("pulse");
       void flightCard.offsetWidth;
@@ -488,27 +407,9 @@
     document.getElementById("callsign").textContent = p.callsign || "—";
     document.getElementById("callsign_iata").textContent = p.callsign_iata || "—";
     document.getElementById("airline_name").textContent = p.airline_name || "—";
-
     document.getElementById("fromTxt").textContent = fmtAirport(p.from);
     document.getElementById("toTxt").textContent = fmtAirport(p.to);
-
     document.getElementById("model").textContent = p.aircraft_model || "—";
-    document.getElementById("type").textContent = p.aircraft_type || "—";
-    document.getElementById("lat").textContent = (p.lat != null ? Number(p.lat).toFixed(3) : "—");
-    document.getElementById("lon").textContent = (p.lon != null ? Number(p.lon).toFixed(3) : "—");
-
-    document.getElementById("hex").textContent = `hex: ${p.icao24 || "—"}`;
-
-    const cat = category(p.aircraft_type);
-    const tagTxt = ({
-      narrow:"Narrow-body",
-      wide:"Wide-body",
-      regional:"Regional",
-      turboprop:"Turboprop",
-      unknown:"Aircraft"
-    })[cat] || "Aircraft";
-    document.getElementById("typeTag").textContent = `${tagTxt}${p.aircraft_type ? ` · ${p.aircraft_type}` : ""}`;
-    document.getElementById("planeSvg").innerHTML = SVG[cat] || SVG.unknown;
 
     const iata = iataFromCallsignIata(p.callsign_iata);
     const logo = document.getElementById("logo");
@@ -521,8 +422,7 @@
     }
   }
 
-  // ----- Fetch planes -----
-  async function fetchPlanes(userTriggered=false){
+  async function fetchPlanes(){
     const err = document.getElementById("err");
     try{
       setNet(null,"NET");
@@ -538,9 +438,9 @@
     }
   }
 
-  // Auto-refresh: solo mentre sei nella screenFlight, ogni 60s
+  // auto-refresh: solo mentre sei in Flight, ogni 60s
   setInterval(() => {
-    if(screenFlight.classList.contains("active")) fetchPlanes(false);
+    if(screenFlight.classList.contains("active")) fetchPlanes();
   }, 60 * 1000);
 </script>
 </body>
