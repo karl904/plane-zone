@@ -7,12 +7,10 @@
   <style>
     :root{
       --bg:#0b1220;
-      --panel: rgba(255,255,255,.05);
       --border: rgba(255,255,255,.10);
       --text:#e7eefc;
       --muted:#9fb0cf;
       --accent:#38bdf8;
-      --accent2:#22c55e;
       --shadow: 0 14px 30px rgba(0,0,0,.38);
       --r: 18px;
       --btn: rgba(255,255,255,.08);
@@ -37,7 +35,6 @@
       gap:10px;
     }
 
-    /* screens */
     .screen{
       display:none;
       height:100%;
@@ -51,37 +48,6 @@
       to{ opacity:1; transform: translateY(0); }
     }
 
-    /* header */
-    .top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-weight:900;
-      letter-spacing:.2px;
-    }
-    .brand .emoji{ font-size:18px; }
-    .brand .t{ font-size:14px; color:var(--muted); font-weight:800; }
-    .net{
-      display:flex; align-items:center; gap:8px;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.03);
-      font-size:12px;
-      color:var(--muted);
-      font-weight:800;
-    }
-    .dot{ width:8px; height:8px; border-radius:99px; background:#f59e0b; box-shadow:0 0 12px rgba(245,158,11,.55); }
-    .dot.ok{ background: var(--accent2); box-shadow:0 0 12px rgba(34,197,94,.55); }
-    .dot.bad{ background: #ef4444; box-shadow:0 0 12px rgba(239,68,68,.55); }
-
-    /* cards */
     .card{
       border:1px solid var(--border);
       background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
@@ -90,7 +56,7 @@
       padding: 12px;
     }
 
-    /* clock screen */
+    /* CLOCK */
     .clockBox{
       flex:1;
       display:flex;
@@ -115,7 +81,6 @@
     .date{
       margin-top:6px;
       font-size:16px;
-      color:var(--text);
       font-weight:900;
       opacity:.95;
       text-transform: capitalize;
@@ -127,7 +92,7 @@
       margin-top:2px;
     }
 
-    /* buttons */
+    /* BUTTONS */
     .btnRow{ display:flex; gap:10px; }
     .btn{
       flex:1;
@@ -149,7 +114,7 @@
     }
     .btn:active{ transform: translateY(1px); }
 
-    /* flight screen (compact) */
+    /* FLIGHT (compact) */
     .headline{
       display:flex;
       align-items:flex-start;
@@ -157,6 +122,7 @@
       gap:10px;
       margin-bottom:10px;
     }
+    .leftHead{ min-width:0; }
     .callsign{
       font-size:26px;
       font-weight:1000;
@@ -170,8 +136,18 @@
       font-weight:900;
       line-height:1.2;
     }
+    .modelRight{
+      font-size:18px;
+      font-weight:1000;
+      letter-spacing:.4px;
+      color:var(--accent);
+      margin-left:auto;
+      padding-left:8px;
+      white-space:nowrap;
+    }
+
     .logo{
-      width:38px; height:38px;
+      width:36px; height:36px;
       object-fit:contain;
       background:#fff;
       border-radius:12px;
@@ -196,24 +172,6 @@
     .val{ font-size:13px; font-weight:1000; line-height:1.15; word-break:break-word;}
     .arrow{ text-align:center; color: var(--accent); font-weight:1000; font-size:16px; }
 
-    .modelBox{
-      border-radius: 16px;
-      background: rgba(255,255,255,.03);
-      border:1px solid var(--border);
-      padding: 12px;
-      text-align:center;
-    }
-    .modelBox .k{
-      font-size:11px; color:var(--muted); font-weight:900; text-transform:uppercase; letter-spacing:.3px;
-    }
-    .modelBox .v{
-      margin-top:6px;
-      font-size:18px;
-      font-weight:1000;
-      letter-spacing:.2px;
-      line-height:1.1;
-    }
-
     .err{
       color:#fecaca;
       font-size:12px;
@@ -222,10 +180,7 @@
       min-height:14px;
     }
 
-    /* animation when plane changes */
-    .pulse{
-      animation: pulseIn .50s ease-out;
-    }
+    .pulse{ animation: pulseIn .45s ease-out; }
     @keyframes pulseIn{
       from{ transform: translateY(6px); opacity: .0; }
       to{ transform: translateY(0); opacity: 1; }
@@ -236,13 +191,8 @@
 <body>
   <div class="wrap">
 
-    <!-- CLOCK SCREEN -->
+    <!-- SCREEN 1: CLOCK -->
     <section id="screenClock" class="screen active">
-      <div class="top">
-        <div class="brand"><span class="emoji">✈️</span><span class="t">Plane-Zone</span></div>
-        <div class="net"><span id="dot" class="dot"></span><span id="netTxt">NET</span></div>
-      </div>
-
       <div class="card clockBox">
         <div class="time" id="time">--:--</div>
         <div class="seconds" id="seconds">--</div>
@@ -255,23 +205,22 @@
       </div>
     </section>
 
-    <!-- FLIGHT SCREEN -->
+    <!-- SCREEN 2: FLIGHT -->
     <section id="screenFlight" class="screen">
-      <div class="top">
-        <div class="brand"><span class="emoji">🛫</span><span class="t">Dettagli volo</span></div>
-        <div class="net"><span id="dot2" class="dot"></span><span id="netTxt2">NET</span></div>
-      </div>
-
       <div class="card" id="flightCard">
         <div class="headline">
-          <div style="min-width:0">
+          <div class="leftHead">
             <div class="callsign" id="callsign">—</div>
             <div class="sub">
               callsign_iata: <span id="callsign_iata">—</span><br>
               airline: <span id="airline_name">—</span>
             </div>
           </div>
-          <img id="logo" class="logo" alt="logo" />
+
+          <div style="display:flex; gap:8px; align-items:flex-start">
+            <div class="modelRight" id="modelRight">—</div>
+            <img id="logo" class="logo" alt="logo" />
+          </div>
         </div>
 
         <div class="route">
@@ -284,11 +233,6 @@
             <div class="label">A</div>
             <div class="val" id="toTxt">—</div>
           </div>
-        </div>
-
-        <div class="modelBox">
-          <div class="k">Modello aereo</div>
-          <div class="v" id="model">—</div>
         </div>
 
         <div class="err" id="err"></div>
@@ -318,24 +262,6 @@
     return `${m} — ${n}`;
   }
 
-  function setNet(ok, msg){
-    const dot = document.getElementById("dot");
-    const dot2 = document.getElementById("dot2");
-    const t1 = document.getElementById("netTxt");
-    const t2 = document.getElementById("netTxt2");
-    [dot,dot2].forEach(d => d.classList.remove("ok","bad"));
-    if(ok === true){
-      [dot,dot2].forEach(d => d.classList.add("ok"));
-      t1.textContent = msg || "OK"; t2.textContent = msg || "OK";
-    } else if(ok === false){
-      [dot,dot2].forEach(d => d.classList.add("bad"));
-      t1.textContent = msg || "ERR"; t2.textContent = msg || "ERR";
-    } else {
-      t1.textContent = msg || "NET"; t2.textContent = msg || "NET";
-    }
-  }
-
-  // screens
   const screenClock = document.getElementById("screenClock");
   const screenFlight = document.getElementById("screenFlight");
   const flightCard = document.getElementById("flightCard");
@@ -351,12 +277,11 @@
 
   document.getElementById("btnShow").addEventListener("click", async () => {
     showFlight();
-    await fetchPlanes(true);
+    await fetchPlanes();
   });
   document.getElementById("btnBack").addEventListener("click", () => showClock());
-  document.getElementById("btnRefresh").addEventListener("click", () => fetchPlanes(true));
+  document.getElementById("btnRefresh").addEventListener("click", () => fetchPlanes());
 
-  // clock
   function tickClock(){
     const d = new Date();
     const hh = String(d.getHours()).padStart(2,"0");
@@ -372,7 +297,6 @@
   tickClock();
   setInterval(tickClock, 1000);
 
-  // pick plane
   function pickFeatured(planes){
     if(!planes || !planes.length) return null;
     const withRoute = planes.filter(p => p.from && p.to && p.airline_name);
@@ -385,14 +309,16 @@
     const err = document.getElementById("err");
     err.textContent = "";
 
+    const logo = document.getElementById("logo");
+
     if(!p){
       document.getElementById("callsign").textContent = "Nessun aereo trovato";
       document.getElementById("callsign_iata").textContent = "—";
       document.getElementById("airline_name").textContent = "—";
       document.getElementById("fromTxt").textContent = "—";
       document.getElementById("toTxt").textContent = "—";
-      document.getElementById("model").textContent = "—";
-      document.getElementById("logo").style.display = "none";
+      document.getElementById("modelRight").textContent = "—";
+      logo.style.display = "none";
       return;
     }
 
@@ -409,10 +335,11 @@
     document.getElementById("airline_name").textContent = p.airline_name || "—";
     document.getElementById("fromTxt").textContent = fmtAirport(p.from);
     document.getElementById("toTxt").textContent = fmtAirport(p.to);
-    document.getElementById("model").textContent = p.aircraft_model || "—";
+
+    const model = p.aircraft_model || "—";
+    document.getElementById("modelRight").textContent = model;
 
     const iata = iataFromCallsignIata(p.callsign_iata);
-    const logo = document.getElementById("logo");
     if(iata){
       logo.src = airhexLogoUrl(iata);
       logo.style.display = "";
@@ -425,20 +352,17 @@
   async function fetchPlanes(){
     const err = document.getElementById("err");
     try{
-      setNet(null,"NET");
       const r = await fetch("/api/planes", { cache:"no-store" });
       if(!r.ok) throw new Error(`HTTP ${r.status}`);
       const planes = await r.json();
-      setNet(true,"OK");
       updateUI(pickFeatured(planes));
     }catch(e){
-      setNet(false,"ERR");
       err.textContent = String(e.message || e);
       updateUI(null);
     }
   }
 
-  // auto-refresh: solo mentre sei in Flight, ogni 60s
+  // auto-refresh solo in Flight, ogni 60s
   setInterval(() => {
     if(screenFlight.classList.contains("active")) fetchPlanes();
   }, 60 * 1000);
