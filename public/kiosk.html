@@ -212,7 +212,7 @@
           <div class="leftHead">
             <div class="callsign" id="callsign">—</div>
             <div class="sub">
-              callsign_iata: <span id="callsign_iata">—</span><br>
+              callsign_icao: <span id="callsign_iata">—</span><br>
               airline: <span id="airline_name">—</span>
             </div>
           </div>
@@ -259,7 +259,8 @@
     if(!x) return "N/D";
     const m = x.municipality || "—";
     const n = x.name || "—";
-    return `${m} — ${n}`;
+    const i = x.iata || x.iata_code || x.iataCode || "";
+    return i ? `${m} — ${n} (${i})` : `${m} — ${n}`;
   }
 
   const screenClock = document.getElementById("screenClock");
@@ -330,8 +331,8 @@
       lastKey = key;
     }
 
-    document.getElementById("callsign").textContent = p.callsign || "—";
-    document.getElementById("callsign_iata").textContent = p.callsign_iata || "—";
+    document.getElementById("callsign").textContent = (p.callsign_iata || p.callsign || "—");
+    document.getElementById("callsign_iata").textContent = (p.callsign || "—");
     document.getElementById("airline_name").textContent = p.airline_name || "—";
     document.getElementById("fromTxt").textContent = fmtAirport(p.from);
     document.getElementById("toTxt").textContent = fmtAirport(p.to);
