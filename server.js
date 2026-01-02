@@ -1,6 +1,17 @@
 const express = require("express");
 const path = require("path");
 
+
+// --- Linate airline mapping (override ADSBdb when needed)
+const LINATE_AIRLINES = {"AZ": "ITA Airways", "EI": "Aer Lingus", "XZ": "AeroItalia", "EN": "Air Dolomiti", "AF": "Air France", "OS": "Austrian Airlines", "BA": "British Airways", "SN": "Brussels Airlines", "DX": "DAT", "U2": "easyJet", "AY": "Finnair", "IB": "Iberia", "KL": "KLM", "KM": "KM Malta Airlines", "LH": "Lufthansa", "LG": "Luxair", "SK": "Scandinavian Airlines", "PI": "Small Fly Airlines", "V7": "Volotea"};
+function overrideAirlineName(enrich) {
+  if (!enrich) return enrich;
+  const cs = (enrich.callsign_iata || '').toUpperCase();
+  const code = cs.slice(0, 2);
+  if (code && LINATE_AIRLINES[code]) enrich.airline_name = LINATE_AIRLINES[code];
+  return enrich;
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -146,7 +157,7 @@ app.get("/api/planes", async (req, res) => {
         enrichAircraftFromHexDB(planes[i].icao24),
       ]);
 
-      if (routeEnrich) planes[i] = { ...planes[i], ...routeEnrich };
+      if (routeEnrich) planes[i] = { ...planes[i], ...overrideAirlineName(routeEnrich) };
       // modello: se hexdb lo trova, lo mettiamo (anche se ADSBdb non lo ha)
       if (aircraftEnrich) planes[i] = { ...planes[i], ...aircraftEnrich };
     }

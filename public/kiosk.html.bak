@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Plane-Zone</title>
+<style>
+:root{
+  --bg:#0b0b0c;
+  --fg:#f2f2f2;
+  --muted:#8a8a8a;
+  --line:#2a2a2a;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  overflow:hidden;
+}
+
+.screen{display:none;height:100%;padding:18px}
+.screen.active{display:flex;flex-direction:column;justify-content:center;align-items:center}
+
+.label{
+  font-size:12px;
+  letter-spacing:.28em;
+  color:var(--muted);
+  margin-bottom:18px;
+}
+.board{display:flex;align-items:center;gap:8px}
+.flap{width:70px;height:96px;position:relative;perspective:700px}
+.flap .face{
+  position:absolute; inset:0;
+  background:#111;
+  border:1px solid var(--line);
+  border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:64px; line-height:1;
+  will-change:transform;
+}
+.flap .top{clip-path:inset(0 0 50% 0)}
+.flap .bottom{clip-path:inset(50% 0 0 0)}
+.flap .flip{
+  position:absolute; inset:0;
+  transform-origin:bottom;
+  animation:flip .38s ease-out;
+  will-change:transform;
+}
+@keyframes flip{from{transform:rotateX(0deg)} to{transform:rotateX(-180deg)}}
+
+.colon{
+  font-size:54px;
+  padding:0 2px;
+  transform:translateY(-4px);
+  opacity:1;
+  transition:opacity .18s linear;
+}
+.colon.blink{opacity:.12}
+
+.date{
+  margin-top:18px;
+  font-size:14px;
+  letter-spacing:.18em;
+  color:var(--muted);
+}
+
+/* --- flight reveal overlay (shown on clock) --- */
+.reveal{
+  position:absolute;
+  left:18px; right:18px;
+  bottom:18px;
+  pointer-events:none;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:center;
+}
+
+.flightRow{
+  width:100%;
+  max-width:520px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(255,255,255,.02);
+  padding:14px 14px 12px;
+  opacity:0;
+  transform:translateY(10px);
+  transition:opacity .35s ease, transform .35s ease;
+}
+
+.flightRow.show{
+  opacity:1;
+  transform:translateY(0);
+}
+
+.topline{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+.route{
+  font-size:40px;
+  font-weight:900;
+  letter-spacing:.10em;
+  line-height:1;
+}
+.stack{
+  text-align:right;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-top:2px;
+}
+.callsign{
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:.14em;
+}
+.model{
+  font-size:16px;
+  color:var(--muted);
+  font-weight:800;
+  letter-spacing:.12em;
+}
+.airline{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:.10em;
+}
+
+/* plane animation */
+.planeStage{
+  width:100%;
+  max-width:520px;
+  height:42px;
+  position:relative;
+  overflow:hidden;
+}
+
+.plane{
+  position:absolute;
+  top:6px;
+  left:-80px;
+  width:56px;
+  height:28px;
+  opacity:0;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,.55));
+}
+
+.plane.fly{
+  opacity:1;
+  animation:fly 2.2s ease-in-out forwards;
+}
+
+@keyframes fly{
+  0%{ transform:translateX(-80px); }
+  15%{ transform:translateX(0px); }
+  100%{ transform:translateX(calc(100vw)); }
+}
+
+/* keep everything centered nicely on small screens */
+@media (max-width: 520px){
+  .route{font-size:34px}
+  .flightRow{max-width:420px}
+  .planeStage{max-width:420px}
+}
+</style>
+</head>
+
+<body>
+
+<!-- CLOCK -->
+<section id="clock" class="screen active">
+  <div class="label">LOCAL TIME</div>
+
+  <div class="board" aria-label="clock">
+    <div class="flap"></div><div class="flap"></div>
+    <div class="colon" id="c1">:</div>
+    <div class="flap"></div><div class="flap"></div>
+  </div>
+
+  <div class="date" id="date"></div>
+</section>
+
+<!-- Reveal overlay (always on clock) -->
+<div class="reveal" id="reveal">
+  <div class="planeStage">
+    <!-- simple vector plane (generic) -->
+    <svg class="plane" id="planeSvg" viewBox="0 0 64 32" aria-hidden="true">
+      <path fill="#f2f2f2" d="M2 17c0-1.1.9-2 2-2h16l10-10c.5-.5 1.2-.8 2-.8h3c.6 0 1.2.3 1.6.8l5.4 7H58c2.2 0 4 1.8 4 4s-1.8 4-4 4H42l-5.4 7c-.4.5-1 .8-1.6.8h-3c-.8 0-1.5-.3-2-.8l-10-10H4c-1.1 0-2-.9-2-2zm22-2 9 9h2.2L41 17.9V14H35.2L33 10h-2l-7 5z"/>
+      <path fill="#f2f2f2" opacity=".85" d="M18 20l8 8H22l-10-8z"/>
+      <path fill="#f2f2f2" opacity=".85" d="M18 12l8-8H22l-10 8z"/>
+    </svg>
+  </div>
+
+  <div class="flightRow" id="flightRow">
+    <div class="topline">
+      <div class="route" id="routeTxt">--- → ---</div>
+      <div class="stack">
+        <div class="callsign" id="csTxt">—</div>
+        <div class="model" id="modelTxt">—</div>
+      </div>
+    </div>
+    <div class="airline" id="airlineTxt">—</div>
+  </div>
+</div>
+
+<script>
+const $ = (id)=>document.getElementById(id);
+
+// ----- CLOCK -----
+function makeFace(n, cls){
+  const d=document.createElement("div");
+  d.className="face " + cls;
+  d.textContent=n;
+  return d;
+}
+const flaps=[...document.querySelectorAll(".flap")];
+let last="";
+function setFlap(flap, from, to){
+  flap.replaceChildren(
+    makeFace(from || to, "top"),
+    makeFace(to, "bottom"),
+    makeFace(from || to, "flip")
+  );
+}
+function tick(){
+  const d=new Date();
+  const h=String(d.getHours()).padStart(2,"0");
+  const m=String(d.getMinutes()).padStart(2,"0");
+  const now = h+m;
+
+  if(now !== last){
+    for(let i=0;i<now.length;i++){
+      if(last[i] !== now[i]){
+        setFlap(flaps[i], last[i], now[i]);
+      }
+    }
+    last = now;
+  }
+  $("c1").classList.toggle("blink", d.getSeconds()%2===0);
+  $("date").textContent =
+    d.toLocaleDateString("it-IT",{weekday:"short",day:"2-digit",month:"short",year:"numeric"}).toUpperCase();
+}
+setInterval(tick, 1000);
+tick();
+
+// ----- FLIGHT POLL + REVEAL -----
+let lastSeenKey = "";   // avoid repeating same plane again and again
+let isAnimating = false;
+
+function getIata(x){
+  return (x && (x.iata || x.iata_code)) ? (x.iata || x.iata_code) : "---";
+}
+function cleanAirlineName(name){
+  if(!name) return "—";
+  const n = String(name).trim();
+  const bad = ["transit", "company", "unknown", "n/a", "generic"];
+  if(bad.some(w => n.toLowerCase().includes(w))) return "—";
+  return n;
+}
+
+function showReveal(p){
+  const oi = getIata(p.from);
+  const di = getIata(p.to);
+  const cs = (p.callsign_iata || p.callsign || "—");
+  const model = (p.aircraft_model || "—");
+  const airline = cleanAirlineName(p.airline_name);
+
+  $("routeTxt").textContent = `${oi} → ${di}`;
+  $("csTxt").textContent = cs;
+  $("modelTxt").textContent = model;
+  $("airlineTxt").textContent = airline;
+
+  // animate plane, then show row
+  const plane = $("planeSvg");
+  const row = $("flightRow");
+
+  isAnimating = true;
+  row.classList.remove("show");
+
+  // restart CSS animations
+  plane.classList.remove("fly");
+  void plane.offsetWidth; // reflow
+  plane.classList.add("fly");
+
+  // when plane reaches mid-ish, reveal the row
+  setTimeout(() => row.classList.add("show"), 420);
+
+  // hide after a bit so clock stays clean
+  setTimeout(() => {
+    row.classList.remove("show");
+    isAnimating = false;
+  }, 9000);
+}
+
+function pickBest(planes){
+  if(!planes || !planes.length) return null;
+  // prefer planes with route + airline
+  const rich = planes.filter(p => p.from && p.to);
+  const list = rich.length ? rich : planes;
+  return list[0];
+}
+
+async function pollPlanes(){
+  if(isAnimating) return; // don’t interrupt animation
+  try{
+    const r = await fetch("/api/planes", { cache:"no-store" });
+    if(!r.ok) return;
+    const planes = await r.json();
+    const p = pickBest(planes);
+    if(!p) return;
+
+    // key to avoid repeating same plane
+    const key = [
+      p.callsign_iata || "",
+      p.callsign || "",
+      getIata(p.from),
+      getIata(p.to),
+      p.aircraft_model || ""
+    ].join("|");
+
+    if(key && key !== lastSeenKey){
+      lastSeenKey = key;
+      showReveal(p);
+    }
+  }catch(e){
+    // ignore silently on clock screen
+  }
+}
+
+// first check after 5s, then every 60s
+setTimeout(pollPlanes, 5000);
+setInterval(pollPlanes, 60000);
+</script>
+
+</body>
+</html>
