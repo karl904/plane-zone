@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>AirTracker</title>
+<title>Plane-Zone</title>
 
 <style>
 :root{
@@ -83,21 +83,21 @@ button{
   position:absolute;
   left:0; right:0;
   top:50%;
-  transform:translateY(-64px); /* sopra i flap */
+  transform:translateY(-64px); /* quota sopra i flap */
   height:120px;
 }
 .plane{
   position:absolute;
-  top:18px;
+  top:0;
   left:-220px;
   width:120px;
-  height:80px;
+  height:120px;
   opacity:0;
-  filter: drop-shadow(0 10px 18px rgba(0,0,0,.45));
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,.55));
 }
 .plane.fly{
   opacity:1;
-  animation:fly 7.5s linear forwards; /* più lento */
+  animation:fly 6.5s linear forwards;
 }
 @keyframes fly{
   0%{transform:translateX(-220px)}
@@ -124,13 +124,21 @@ button{
 .routeTop{
   display:flex;
   justify-content:space-between;
-  align-items:center;
+  align-items:flex-start;
   gap:12px;
-  flex-wrap:nowrap; /* MAI sotto */
+  
+
+  align-items:center;
+  flex-wrap:nowrap;
 }
 
+
 /* Route flaps (IATA) */
-.routeFlaps{display:flex;align-items:center;gap:6px;flex:1 1 auto;min-width:0}
+.routeFlaps{display:flex;align-items:center;gap:6px;max-width:100%;flex:1 1 240px
+  flex:1 1 auto;
+  min-width:0;
+}
+
 .rflap{
   width:52px;height:70px;
   background:#111;
@@ -158,25 +166,27 @@ button{
   gap:6px;
   margin-top:2px;
   flex:0 0 auto;
+  min-width:72px;
+  max-width:110px;
+
+  flex:0 0 auto;
   white-space:nowrap;
 }
+
 .topCallsign{
   font-size:14px;
   font-weight:900;
   letter-spacing:.06em;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
 }
+
+
 .modelTag{
   font-size:13px;
-  color:var(--muted);
   letter-spacing:.05em;
-  font-weight:800;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
 }
+
+
+
 .airlineLine{
   margin-top:10px;
   font-size:12px;
@@ -227,13 +237,15 @@ button{
 }
 .arrow2{color:var(--muted); font-size:16px; transform:translateY(18px)}
 
-/* Small screens */
+/* Small screens (Pi 320x480) */
 @media (max-width: 380px){
   .flap{width:62px;height:88px}
   .flap .face{font-size:60px}
   .rflap{width:44px;height:60px}
   .rface{font-size:40px}
   .rarrow{font-size:34px;margin:0 8px}
+  .topCallsign{font-size:16px}
+  .modelTag{font-size:14px}
 }
 </style>
 </head>
@@ -257,20 +269,9 @@ button{
 <!-- plane overlay -->
 <div class="planeStage" aria-hidden="true">
   <div class="planeLane">
-    <!-- OUTLINE plane icon (white stroke) -->
-    <svg class="plane" id="planeSvg" viewBox="0 0 256 256">
-      <g fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
-        <!-- fusoliera -->
-        <path d="M210 132c0 10-8 18-18 18H92l-40 22c-10 5-22-2-22-13v-10l54-19v-10l-54-19v-10c0-11 12-18 22-13l40 22h100c10 0 18 8 18 18z"/>
-        <!-- coda -->
-        <path d="M92 120l-26-30"/>
-        <path d="M92 150l-26 30"/>
-        <!-- ali -->
-        <path d="M122 120l-26-54"/>
-        <path d="M122 150l-26 54"/>
-        <!-- naso -->
-        <path d="M210 132h22"/>
-      </g>
+    <!-- top-down silhouette white -->
+    <svg class="plane" id="planeSvg" viewBox="0 0 128 128">
+      <path fill="#ffffff" d="M62 6c-7 0-12 6-12 13v26L16 60c-2 1-3 3-3 5v8c0 2 2 4 4 4l33-6v20L35 103c-1 1-2 2-2 4v7c0 2 2 4 4 3l25-9v12c0 4 3 8 6 8s6-4 6-8v-12l25 9c2 1 4-1 4-3v-7c0-2-1-3-2-4L78 91V71l33 6c2 0 4-2 4-4v-8c0-2-1-4-3-5L78 45V19c0-7-5-13-12-13zm0 52c2 0 4 2 4 4s-2 4-4 4-4-2-4-4 2-4 4-4z"/>
     </svg>
   </div>
 </div>
@@ -338,28 +339,17 @@ button{
 <script>
 const $ = (id)=>document.getElementById(id);
 
-/* ---------- idle tracking ---------- */
-let lastUserAction = Date.now();
-const IDLE_MS = 60000; // 1 minuto
-
-function touch(){
-  lastUserAction = Date.now();
-}
-// tocchi ovunque
-document.addEventListener("pointerdown", touch, {passive:true});
-document.addEventListener("touchstart", touch, {passive:true});
-
 /* ---------- screens ---------- */
 const clockEl = $("clock");
 const flightEl = $("flight");
 
-$("btnShow").onclick = () => { touch(); showFlight(); refreshFlight(); };
+$("btnShow").onclick = () => { showFlight(); refreshFlight(); };
 
-$("btnBack").onclick = () => { touch(); showClock(); };
-$("btnBack2").onclick = () => { touch(); showClock(); };
-$("btnRefresh").onclick = () => { touch(); refreshFlight(); };
-$("btnRefresh2").onclick = () => { touch(); refreshFlight(); };
-$("routeRow").onclick = () => { touch(); toggleDetails(); };
+$("btnBack").onclick = () => showClock();
+$("btnBack2").onclick = () => showClock();
+$("btnRefresh").onclick = () => refreshFlight();
+$("btnRefresh2").onclick = () => refreshFlight();
+$("routeRow").onclick = () => toggleDetails();
 
 function showFlight(){ clockEl.classList.remove("active"); flightEl.classList.add("active"); }
 function showClock(){ flightEl.classList.remove("active"); clockEl.classList.add("active"); closeDetails(); }
@@ -436,7 +426,9 @@ function cleanAirlineName(name){
 
 /* ---------- apply plane to UI ---------- */
 function applyPlaneToFlightUI(p){
+  // IMPORTANT: se abbiamo un plane, l’errore va sempre pulito
   $("flightErr").textContent = "";
+
   const oi = getIata(p.from);
   const di = getIata(p.to);
   const cs = (p.callsign_iata || p.callsign || "—");
@@ -473,6 +465,7 @@ async function refreshFlight(){
     const p = pickFeatured(planes);
 
     if(!p){
+      // qui ha senso mostrare NESSUN AEREO
       $("flightErr").textContent = "NESSUN AEREO";
       setRouteFlaps("---","---");
       $("topCallsign").textContent = "—";
@@ -487,12 +480,13 @@ async function refreshFlight(){
     }
 
     applyPlaneToFlightUI(p);
+
   }catch(e){
     $("flightErr").textContent = "ERR";
   }
 }
 
-/* ---------- plane detection + behavior ---------- */
+/* ---------- auto detect on clock ---------- */
 let isAnimating = false;
 let lastSeenKey = "";
 
@@ -514,19 +508,18 @@ function runPlaneAnimationThenOpen(p){
   void plane.offsetWidth;
   plane.classList.add("fly");
 
-  // durante questa transizione consideriamolo "attività"
-  touch();
-
   // a metà animazione apri Flight con dati
   setTimeout(() => {
     applyPlaneToFlightUI(p);
     showFlight();
     isAnimating = false;
-    touch(); // reset timer idle
-  }, 3750); // metà di 7.5s
+  }, 3250); // metà di 6.5s
 }
 
 async function pollPlanes(){
+  if(!clockEl.classList.contains("active")) return;
+  if(isAnimating) return;
+
   try{
     const r = await fetch("/api/planes", { cache:"no-store" });
     if(!r.ok) return;
@@ -535,17 +528,9 @@ async function pollPlanes(){
     if(!p) return;
 
     const key = planeKey(p);
-    if(!key || key === lastSeenKey) return;
-
-    lastSeenKey = key;
-
-    if(clockEl.classList.contains("active")){
-      // se sei sull’orario: animazione sopra orologio + apertura flight
+    if(key && key !== lastSeenKey){
+      lastSeenKey = key;
       runPlaneAnimationThenOpen(p);
-    } else {
-      // se sei già su flight: aggiorna e NON tornare al clock
-      applyPlaneToFlightUI(p);
-      touch(); // reset timer idle
     }
   }catch(e){
     // ignore
@@ -555,19 +540,9 @@ async function pollPlanes(){
 // init defaults
 setRouteFlaps("---","---");
 
-// poll: ogni 60s
+// first check after 8s, then every 60s
 setTimeout(pollPlanes, 8000);
 setInterval(pollPlanes, 60000);
-
-/* ---------- auto return to clock after 1 min idle on flight ---------- */
-setInterval(() => {
-  if(!flightEl.classList.contains("active")) return;
-  if(isAnimating) return;
-  if(Date.now() - lastUserAction >= IDLE_MS){
-    showClock();
-    touch();
-  }
-}, 1000);
 </script>
 
 </body>
