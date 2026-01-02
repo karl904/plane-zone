@@ -1,372 +1,476 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Plane-Zone Kiosk</title>
-  <style>
-    :root{
-      --bg:#0b1220;
-      --border: rgba(255,255,255,.10);
-      --text:#e7eefc;
-      --muted:#9fb0cf;
-      --accent:#38bdf8;
-      --shadow: 0 14px 30px rgba(0,0,0,.38);
-      --r: 18px;
-      --btn: rgba(255,255,255,.08);
-    }
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0;
-      background:
-        radial-gradient(900px 520px at 50% -120px, rgba(56,189,248,.22), transparent 55%),
-        radial-gradient(700px 420px at 15% 20%, rgba(34,197,94,.12), transparent 60%),
-        var(--bg);
-      color:var(--text);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      overflow:hidden;
-    }
-    .wrap{
-      height:100%;
-      padding: 12px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Plane-Zone</title>
+<style>
+:root{
+  --bg:#0b0b0c;
+  --fg:#f2f2f2;
+  --muted:#8a8a8a;
+  --line:#2a2a2a;
+}
 
-    .screen{
-      display:none;
-      height:100%;
-      flex-direction:column;
-      gap:10px;
-      animation: fadeIn .25s ease-out;
-    }
-    .screen.active{ display:flex; }
-    @keyframes fadeIn{
-      from{ opacity:0; transform: translateY(6px); }
-      to{ opacity:1; transform: translateY(0); }
-    }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  overflow:hidden;
+}
 
-    .card{
-      border:1px solid var(--border);
-      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
-      border-radius: var(--r);
-      box-shadow: var(--shadow);
-      padding: 12px;
-    }
+.screen{display:none;height:100%;padding:18px}
+.screen.active{display:flex;flex-direction:column;justify-content:center;align-items:center}
 
-    /* CLOCK */
-    .clockBox{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      text-align:center;
-      gap:8px;
-    }
-    .time{
-      font-size:72px;
-      font-weight:1000;
-      line-height:1;
-      letter-spacing:1px;
-    }
-    .seconds{
-      font-size:14px;
-      color:var(--muted);
-      font-weight:900;
-      letter-spacing:.3px;
-    }
-    .date{
-      margin-top:6px;
-      font-size:16px;
-      font-weight:900;
-      opacity:.95;
-      text-transform: capitalize;
-    }
-    .subdate{
-      font-size:12px;
-      color:var(--muted);
-      font-weight:800;
-      margin-top:2px;
-    }
+/* CLOCK */
+.board{display:flex;align-items:center;gap:8px}
+.flap{width:70px;height:96px;position:relative;perspective:700px}
+.flap .face{
+  position:absolute; inset:0;
+  background:#111;
+  border:1px solid var(--line);
+  border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:64px; line-height:1;
+  will-change:transform;
+}
+.flap .top{clip-path:inset(0 0 50% 0)}
+.flap .bottom{clip-path:inset(50% 0 0 0)}
+.flap .flip{
+  position:absolute; inset:0;
+  transform-origin:bottom;
+  animation:flip .38s ease-out;
+  will-change:transform;
+}
+@keyframes flip{from{transform:rotateX(0deg)} to{transform:rotateX(-180deg)}}
 
-    /* BUTTONS */
-    .btnRow{ display:flex; gap:10px; }
-    .btn{
-      flex:1;
-      border:1px solid var(--border);
-      background: var(--btn);
-      color: var(--text);
-      font-weight:900;
-      border-radius: 14px;
-      padding: 14px 12px;
-      font-size:14px;
-      letter-spacing:.2px;
-      cursor:pointer;
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn.primary{
-      background: linear-gradient(180deg, rgba(56,189,248,.22), rgba(56,189,248,.12));
-      border-color: rgba(56,189,248,.35);
-    }
-    .btn:active{ transform: translateY(1px); }
+.colon{
+  font-size:54px;
+  padding:0 2px;
+  transform:translateY(-4px);
+  opacity:1;
+  transition:opacity .18s linear;
+}
+.colon.blink{opacity:.12}
 
-    /* FLIGHT (compact) */
-    .headline{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
-    }
-    .leftHead{ min-width:0; }
-    .callsign{
-      font-size:26px;
-      font-weight:1000;
-      letter-spacing:.4px;
-      line-height:1.05;
-    }
-    .sub{
-      margin-top:6px;
-      font-size:12px;
-      color:var(--muted);
-      font-weight:900;
-      line-height:1.2;
-    }
-    .modelRight{
-      font-size:18px;
-      font-weight:1000;
-      letter-spacing:.4px;
-      color:var(--accent);
-      margin-left:auto;
-      padding-left:8px;
-      white-space:nowrap;
-    }
+.date{
+  margin-top:18px;
+  font-size:14px;
+  letter-spacing:.18em;
+  color:var(--muted);
+}
 
-    .logo{
-      width:36px; height:36px;
-      object-fit:contain;
-      background:#fff;
-      border-radius:12px;
-      padding:6px;
-      box-shadow: 0 2px 3px rgba(0,0,0,.12), 0 10px 20px rgba(0,0,0,.22);
-      border:1px solid rgba(0,0,0,.06);
-      display:none;
-    }
+.btnrow{display:flex; gap:10px; margin-top:22px}
+button{
+  background:transparent;
+  border:1px solid var(--line);
+  color:var(--fg);
+  padding:10px 18px;
+  border-radius:10px;
+  font-family:inherit;
+  letter-spacing:.14em;
+}
 
-    .route{
-      display:grid;
-      grid-template-columns: 1fr 18px 1fr;
-      gap:8px;
-      align-items:center;
-      padding: 10px;
-      border-radius: 16px;
-      background: rgba(255,255,255,.03);
-      border:1px solid var(--border);
-      margin-bottom:10px;
-    }
-    .label{ font-size:11px; color:var(--muted); font-weight:900; text-transform:uppercase; letter-spacing:.3px; margin-bottom:4px;}
-    .val{ font-size:13px; font-weight:1000; line-height:1.15; word-break:break-word;}
-    .arrow{ text-align:center; color: var(--accent); font-weight:1000; font-size:16px; }
+/* PLANE ANIMATION (clock overlay) */
+.planeStage{
+  position:absolute;
+  left:0; right:0;
+  top:54%;
+  height:56px;
+  pointer-events:none;
+  overflow:hidden;
+}
+.plane{
+  position:absolute;
+  top:10px;
+  left:-120px;
+  width:96px;
+  height:36px;
+  opacity:0;
+  filter: drop-shadow(0 10px 16px rgba(0,0,0,.65));
+}
+.plane.fly{
+  opacity:1;
+  animation:fly 4.8s ease-in-out forwards;
+}
+@keyframes fly{
+  0%{transform:translateX(-140px)}
+  100%{transform:translateX(calc(100vw + 220px))}
+}
 
-    .err{
-      color:#fecaca;
-      font-size:12px;
-      font-weight:900;
-      margin-top:8px;
-      min-height:14px;
-    }
+/* FLIGHT SCREEN (airport board + details) */
+.flight-wrap{
+  width:100%;
+  max-width:420px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
 
-    .pulse{ animation: pulseIn .45s ease-out; }
-    @keyframes pulseIn{
-      from{ transform: translateY(6px); opacity: .0; }
-      to{ transform: translateY(0); opacity: 1; }
-    }
-  </style>
+.routeRow{
+  cursor:pointer;
+  user-select:none;
+  padding:14px 12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(255,255,255,.02);
+}
+
+.routeTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+.bigRoute{
+  font-size:44px;
+  font-weight:900;
+  letter-spacing:.10em;
+  line-height:1;
+}
+.rightStack{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
+  margin-top:2px;
+}
+.topCallsign{
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:.14em;
+}
+.modelTag{
+  font-size:16px;
+  color:var(--muted);
+  letter-spacing:.12em;
+  font-weight:800;
+}
+.airlineLine{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:.10em;
+  min-height:16px;
+}
+
+.details{
+  display:none;
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(255,255,255,.02);
+  padding:12px;
+}
+.details.active{display:block}
+
+.meta{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.55;
+}
+.meta b{color:var(--fg); font-weight:800}
+
+.routeLines{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--line);
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  justify-content:space-between;
+}
+.routeLines .side{width:45%; font-size:12px; color:var(--muted)}
+.routeLines .side b{
+  display:block;
+  font-size:13px;
+  color:var(--fg);
+  letter-spacing:.02em;
+  margin-top:3px;
+}
+.arrow{color:var(--muted); font-size:16px; transform:translateY(18px)}
+.err{
+  font-size:12px;
+  color:#ffb4b4;
+  letter-spacing:.10em;
+  text-align:right;
+  min-height:16px;
+}
+</style>
 </head>
 
 <body>
-  <div class="wrap">
 
-    <!-- SCREEN 1: CLOCK -->
-    <section id="screenClock" class="screen active">
-      <div class="card clockBox">
-        <div class="time" id="time">--:--</div>
-        <div class="seconds" id="seconds">--</div>
-        <div class="date" id="datePretty">—</div>
-        <div class="subdate" id="dateSmall">—</div>
-      </div>
-
-      <div class="btnRow">
-        <button class="btn primary" id="btnShow">Mostra aereo</button>
-      </div>
-    </section>
-
-    <!-- SCREEN 2: FLIGHT -->
-    <section id="screenFlight" class="screen">
-      <div class="card" id="flightCard">
-        <div class="headline">
-          <div class="leftHead">
-            <div class="callsign" id="callsign">—</div>
-            <div class="sub">
-              callsign_icao: <span id="callsign_iata">—</span><br>
-              airline: <span id="airline_name">—</span>
-            </div>
-          </div>
-
-          <div style="display:flex; gap:8px; align-items:flex-start">
-            <div class="modelRight" id="modelRight">—</div>
-            <img id="logo" class="logo" alt="logo" />
-          </div>
-        </div>
-
-        <div class="route">
-          <div>
-            <div class="label">Da</div>
-            <div class="val" id="fromTxt">—</div>
-          </div>
-          <div class="arrow">➜</div>
-          <div style="text-align:right">
-            <div class="label">A</div>
-            <div class="val" id="toTxt">—</div>
-          </div>
-        </div>
-
-        <div class="err" id="err"></div>
-      </div>
-
-      <div class="btnRow">
-        <button class="btn" id="btnBack">Back</button>
-        <button class="btn primary" id="btnRefresh">Aggiorna</button>
-      </div>
-    </section>
-
+<!-- CLOCK -->
+<section id="clock" class="screen active">
+  <div class="board" aria-label="clock">
+    <div class="flap"></div><div class="flap"></div>
+    <div class="colon" id="c1">:</div>
+    <div class="flap"></div><div class="flap"></div>
   </div>
 
+  <div class="date" id="date"></div>
+
+  <div class="btnrow">
+    <button id="btnShow">SHOW FLIGHT</button>
+  </div>
+</section>
+
+<!-- Plane animation overlay (shown on clock) -->
+<div class="planeStage" aria-hidden="true">
+  <!-- cleaner airplane silhouette -->
+  <svg class="plane" id="planeSvg" viewBox="0 0 120 40">
+    <path fill="#f2f2f2" d="M4 22c0-1.6 1.3-3 3-3h28l20-16c1.1-.9 2.5-1.4 3.9-1.4H66c1.5 0 2.9.8 3.7 2L83 17h30c4.1 0 7 2.5 7 6s-2.9 6-7 6H83l-13.3 13.2c-.8 1.2-2.2 2-3.7 2h-7.1c-1.4 0-2.8-.5-3.9-1.4L35 27H7c-1.7 0-3-1.3-3-3zm40-3 14 12h7.2l9.8-8.5V18H65.2L58 9.5h-4.6L44 19z"/>
+    <path fill="#f2f2f2" opacity=".9" d="M26 25l14 11h-8l-18-11z"/>
+    <path fill="#f2f2f2" opacity=".9" d="M26 15l14-11h-8L14 15z"/>
+  </svg>
+</div>
+
+<!-- FLIGHT -->
+<section id="flight" class="screen">
+  <div class="flight-wrap">
+
+    <div class="routeRow" id="routeRow" title="Apri dettagli">
+      <div class="routeTop">
+        <div class="bigRoute" id="iataRoute">--- → ---</div>
+
+        <div class="rightStack">
+          <div class="topCallsign" id="topCallsign">—</div>
+          <div class="modelTag" id="topModel">—</div>
+        </div>
+      </div>
+
+      <div class="airlineLine" id="topAirline">—</div>
+      <div class="err" id="flightErr"></div>
+    </div>
+
+    <div class="details" id="details">
+      <div class="meta">
+        <div>Callsign: <b id="flightCallsign">—</b></div>
+        <div>Airline: <b id="flightAirline">—</b></div>
+      </div>
+
+      <div class="routeLines">
+        <div class="side">
+          DA
+          <b id="fromTxt">N/D</b>
+        </div>
+        <div class="arrow">➜</div>
+        <div class="side" style="text-align:right">
+          A
+          <b id="toTxt">N/D</b>
+        </div>
+      </div>
+
+      <div class="btnrow" style="justify-content:space-between; margin-top:12px;">
+        <button id="btnBack">BACK</button>
+        <button id="btnRefresh">AGGIORNA</button>
+      </div>
+    </div>
+
+    <div class="btnrow" id="bottomBtns" style="justify-content:space-between">
+      <button id="btnBack2">BACK</button>
+      <button id="btnRefresh2">AGGIORNA</button>
+    </div>
+
+  </div>
+</section>
+
 <script>
-  function iataFromCallsignIata(csIata){
-    if(!csIata || typeof csIata !== "string") return null;
-    const code = csIata.trim().slice(0,2).toUpperCase();
-    return /^[A-Z0-9]{2}$/.test(code) ? code : null;
+const $ = (id)=>document.getElementById(id);
+
+// ----- Screen switching -----
+const clockEl = $("clock");
+const flightEl = $("flight");
+$("btnShow").onclick = () => { showFlight(); refreshFlight(); };
+$("btnBack").onclick = () => showClock();
+$("btnBack2").onclick = () => showClock();
+$("btnRefresh").onclick = () => refreshFlight();
+$("btnRefresh2").onclick = () => refreshFlight();
+$("routeRow").onclick = () => toggleDetails();
+
+function showFlight(){ clockEl.classList.remove("active"); flightEl.classList.add("active"); }
+function showClock(){ flightEl.classList.remove("active"); clockEl.classList.add("active"); closeDetails(); }
+
+function openDetails(){ $("details").classList.add("active"); $("bottomBtns").style.display="none"; }
+function closeDetails(){ $("details").classList.remove("active"); $("bottomBtns").style.display="flex"; }
+function toggleDetails(){ $("details").classList.contains("active") ? closeDetails() : openDetails(); }
+
+// ----- CLOCK -----
+function makeFace(n, cls){
+  const d=document.createElement("div");
+  d.className="face " + cls;
+  d.textContent=n;
+  return d;
+}
+const flaps=[...document.querySelectorAll(".flap")];
+let last="";
+function setFlap(flap, from, to){
+  flap.replaceChildren(
+    makeFace(from || to, "top"),
+    makeFace(to, "bottom"),
+    makeFace(from || to, "flip")
+  );
+}
+function tick(){
+  const d=new Date();
+  const h=String(d.getHours()).padStart(2,"0");
+  const m=String(d.getMinutes()).padStart(2,"0");
+  const now = h+m;
+
+  if(now !== last){
+    for(let i=0;i<now.length;i++){
+      if(last[i] !== now[i]){
+        setFlap(flaps[i], last[i], now[i]);
+      }
+    }
+    last = now;
   }
-  function airhexLogoUrl(iata){
-    return `https://content.airhex.com/content/logos/airlines_${iata}_200_200_r.png`;
-  }
-  function fmtAirport(x){
-    if(!x) return "N/D";
-    const m = x.municipality || "—";
-    const n = x.name || "—";
-    const i = x.iata || x.iata_code || x.iataCode || "";
-    return i ? `${m} — ${n} (${i})` : `${m} — ${n}`;
-  }
+  $("c1").classList.toggle("blink", d.getSeconds()%2===0);
+  $("date").textContent =
+    d.toLocaleDateString("it-IT",{weekday:"short",day:"2-digit",month:"short",year:"numeric"}).toUpperCase();
+}
+setInterval(tick, 1000);
+tick();
 
-  const screenClock = document.getElementById("screenClock");
-  const screenFlight = document.getElementById("screenFlight");
-  const flightCard = document.getElementById("flightCard");
+// ----- Flight data helpers -----
+function fmtAirport(x){
+  if(!x) return "N/D";
+  const m = x.municipality || "—";
+  const n = x.name || "—";
+  const i = x.iata || x.iata_code || "";
+  return i ? `${m} — ${n} (${i})` : `${m} — ${n}`;
+}
+function getIata(x){
+  return (x && (x.iata || x.iata_code)) ? (x.iata || x.iata_code) : "---";
+}
+function cleanAirlineName(name){
+  if(!name) return "—";
+  const n = String(name).trim();
+  const bad = ["transit", "company", "unknown", "n/a", "generic"];
+  if(bad.some(w => n.toLowerCase().includes(w))) return "—";
+  return n;
+}
 
-  function showClock(){
-    screenFlight.classList.remove("active");
-    screenClock.classList.add("active");
-  }
-  function showFlight(){
-    screenClock.classList.remove("active");
-    screenFlight.classList.add("active");
-  }
+// Fill Flight UI from a plane object (shared by refresh + auto reveal)
+function applyPlaneToFlightUI(p){
+  const oi = getIata(p.from);
+  const di = getIata(p.to);
+  const cs = (p.callsign_iata || p.callsign || "—");
+  const model = (p.aircraft_model || "—");
+  const airline = cleanAirlineName(p.airline_name);
 
-  document.getElementById("btnShow").addEventListener("click", async () => {
-    showFlight();
-    await fetchPlanes();
-  });
-  document.getElementById("btnBack").addEventListener("click", () => showClock());
-  document.getElementById("btnRefresh").addEventListener("click", () => fetchPlanes());
+  $("iataRoute").textContent = `${oi} → ${di}`;
+  $("topCallsign").textContent = cs;
+  $("topModel").textContent = model;
+  $("topAirline").textContent = airline;
 
-  function tickClock(){
-    const d = new Date();
-    const hh = String(d.getHours()).padStart(2,"0");
-    const mm = String(d.getMinutes()).padStart(2,"0");
-    const ss = String(d.getSeconds()).padStart(2,"0");
-    document.getElementById("time").textContent = `${hh}:${mm}`;
-    document.getElementById("seconds").textContent = `${ss} sec`;
-    document.getElementById("datePretty").textContent =
-      d.toLocaleDateString("it-IT", { weekday:"long", day:"2-digit", month:"long" });
-    document.getElementById("dateSmall").textContent =
-      d.toLocaleDateString("it-IT", { year:"numeric" });
-  }
-  tickClock();
-  setInterval(tickClock, 1000);
+  $("flightCallsign").textContent = cs;
+  $("flightAirline").textContent = airline;
+  $("fromTxt").textContent = fmtAirport(p.from);
+  $("toTxt").textContent = fmtAirport(p.to);
+}
 
-  function pickFeatured(planes){
-    if(!planes || !planes.length) return null;
-    const withRoute = planes.filter(p => p.from && p.to && p.airline_name);
-    return withRoute[0] || planes[0];
-  }
+// ----- Refresh flight (manual / show flight) -----
+let rotateIdx = 0;
+function pickFeatured(planes){
+  if(!planes || !planes.length) return null;
+  const rich = planes.filter(p => p.from && p.to);
+  const list = rich.length ? rich : planes;
+  const pck = list[rotateIdx % list.length];
+  rotateIdx = (rotateIdx + 1) % list.length;
+  return pck;
+}
 
-  let lastKey = null;
-
-  function updateUI(p){
-    const err = document.getElementById("err");
-    err.textContent = "";
-
-    const logo = document.getElementById("logo");
+async function refreshFlight(){
+  $("flightErr").textContent = "";
+  try{
+    const r = await fetch("/api/planes", { cache:"no-store" });
+    if(!r.ok) throw new Error("API error");
+    const planes = await r.json();
+    const p = pickFeatured(planes);
 
     if(!p){
-      document.getElementById("callsign").textContent = "Nessun aereo trovato";
-      document.getElementById("callsign_iata").textContent = "—";
-      document.getElementById("airline_name").textContent = "—";
-      document.getElementById("fromTxt").textContent = "—";
-      document.getElementById("toTxt").textContent = "—";
-      document.getElementById("modelRight").textContent = "—";
-      logo.style.display = "none";
+      $("flightErr").textContent = "NESSUN AEREO";
+      $("iataRoute").textContent = "--- → ---";
+      $("topCallsign").textContent = "—";
+      $("topModel").textContent = "—";
+      $("topAirline").textContent = "—";
+      $("flightCallsign").textContent = "—";
+      $("flightAirline").textContent = "—";
+      $("fromTxt").textContent = "N/D";
+      $("toTxt").textContent = "N/D";
+      closeDetails();
       return;
     }
 
-    const key = `${p.icao24||""}|${p.callsign||""}|${p.callsign_iata||""}|${p.airline_name||""}|${p.from?.name||""}|${p.to?.name||""}|${p.aircraft_model||""}`;
-    if(key !== lastKey){
-      flightCard.classList.remove("pulse");
-      void flightCard.offsetWidth;
-      flightCard.classList.add("pulse");
-      lastKey = key;
-    }
+    applyPlaneToFlightUI(p);
 
-    document.getElementById("callsign").textContent = (p.callsign_iata || p.callsign || "—");
-    document.getElementById("callsign_iata").textContent = (p.callsign || "—");
-    document.getElementById("airline_name").textContent = p.airline_name || "—";
-    document.getElementById("fromTxt").textContent = fmtAirport(p.from);
-    document.getElementById("toTxt").textContent = fmtAirport(p.to);
-
-    const model = p.aircraft_model || "—";
-    document.getElementById("modelRight").textContent = model;
-
-    const iata = iataFromCallsignIata(p.callsign_iata);
-    if(iata){
-      logo.src = airhexLogoUrl(iata);
-      logo.style.display = "";
-      logo.onerror = () => { logo.style.display="none"; };
-    } else {
-      logo.style.display="none";
-    }
+  }catch(e){
+    $("flightErr").textContent = "ERR";
   }
+}
 
-  async function fetchPlanes(){
-    const err = document.getElementById("err");
-    try{
-      const r = await fetch("/api/planes", { cache:"no-store" });
-      if(!r.ok) throw new Error(`HTTP ${r.status}`);
-      const planes = await r.json();
-      updateUI(pickFeatured(planes));
-    }catch(e){
-      err.textContent = String(e.message || e);
-      updateUI(null);
+// ----- Auto-detect on clock: animate plane then open flight page -----
+let isAnimating = false;
+let lastSeenKey = "";
+
+function planeKey(p){
+  return [
+    p.callsign_iata || "",
+    p.callsign || "",
+    getIata(p.from),
+    getIata(p.to),
+    p.aircraft_model || ""
+  ].join("|");
+}
+
+function runPlaneAnimationThenOpen(p){
+  const plane = $("planeSvg");
+  isAnimating = true;
+
+  // restart CSS animation
+  plane.classList.remove("fly");
+  void plane.offsetWidth;
+  plane.classList.add("fly");
+
+  // halfway through the flight, switch to FLIGHT and show data
+  setTimeout(() => {
+    applyPlaneToFlightUI(p);
+    showFlight();
+    isAnimating = false;
+  }, 2400); // half of 4.8s
+}
+
+async function pollPlanes(){
+  // only poll while on clock
+  if(!clockEl.classList.contains("active")) return;
+  if(isAnimating) return;
+
+  try{
+    const r = await fetch("/api/planes", { cache:"no-store" });
+    if(!r.ok) return;
+    const planes = await r.json();
+    const p = pickFeatured(planes);
+    if(!p) return;
+
+    const key = planeKey(p);
+    if(key && key !== lastSeenKey){
+      lastSeenKey = key;
+      runPlaneAnimationThenOpen(p);
     }
+  }catch(e){
+    // ignore on clock
   }
+}
 
-  // auto-refresh solo in Flight, ogni 60s
-  setInterval(() => {
-    if(screenFlight.classList.contains("active")) fetchPlanes();
-  }, 60 * 1000);
+// first check after 8s, then every 60s
+setTimeout(pollPlanes, 8000);
+setInterval(pollPlanes, 60000);
 </script>
+
 </body>
 </html>
