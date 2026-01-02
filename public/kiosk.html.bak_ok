@@ -4,15 +4,14 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Plane-Zone</title>
-
 <style>
 :root{
   --bg:#0b0b0c;
   --fg:#f2f2f2;
   --muted:#8a8a8a;
   --line:#2a2a2a;
-  --panel:rgba(255,255,255,.02);
 }
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -22,10 +21,11 @@ body{
   font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   overflow:hidden;
 }
+
 .screen{display:none;height:100%;padding:18px}
 .screen.active{display:flex;flex-direction:column;justify-content:center;align-items:center}
 
-/* ---------- CLOCK (flaps) ---------- */
+/* CLOCK */
 .board{display:flex;align-items:center;gap:8px}
 .flap{width:70px;height:96px;position:relative;perspective:700px}
 .flap .face{
@@ -34,7 +34,7 @@ body{
   border:1px solid var(--line);
   border-radius:10px;
   display:flex; align-items:center; justify-content:center;
-  font-weight:900; font-size:64px; line-height:1;
+  font-weight:800; font-size:64px; line-height:1;
   will-change:transform;
 }
 .flap .top{clip-path:inset(0 0 50% 0)}
@@ -46,6 +46,7 @@ body{
   will-change:transform;
 }
 @keyframes flip{from{transform:rotateX(0deg)} to{transform:rotateX(-180deg)}}
+
 .colon{
   font-size:54px;
   padding:0 2px;
@@ -54,57 +55,65 @@ body{
   transition:opacity .18s linear;
 }
 .colon.blink{opacity:.12}
+
 .date{
   margin-top:18px;
   font-size:14px;
   letter-spacing:.18em;
   color:var(--muted);
 }
-.btnrow{display:flex;gap:10px;margin-top:22px;width:100%;justify-content:center}
+
+.btnrow{display:flex; gap:10px; margin-top:22px}
 button{
   background:transparent;
   border:1px solid var(--line);
   color:var(--fg);
   padding:10px 18px;
-  border-radius:12px;
+  border-radius:10px;
   font-family:inherit;
   letter-spacing:.14em;
 }
 
-/* ---------- Plane animation OVER the clock ---------- */
+/* PLANE ANIMATION (clock overlay) */
 .planeStage{
   position:fixed;
-  inset:0;
+  left:0; right:0;
+  top:18px;
+  bottom:18px;
   pointer-events:none;
   overflow:hidden;
   z-index:9999;
 }
+
+/* l’aereo passa proprio sopra l’orario */
 .planeLane{
   position:absolute;
   left:0; right:0;
   top:50%;
-  transform:translateY(-64px); /* quota sopra i flap */
-  height:120px;
+  transform:translateY(-64px);
+  height:64px;
 }
+
 .plane{
   position:absolute;
-  top:0;
-  left:-220px;
-  width:120px;
-  height:120px;
+  top:8px;
+  left:-180px;
+  width:110px;
+  height:110px;
   opacity:0;
   filter: drop-shadow(0 10px 18px rgba(0,0,0,.55));
 }
+
 .plane.fly{
   opacity:1;
   animation:fly 6.5s linear forwards;
 }
-@keyframes fly{
+ fly{
   0%{transform:translateX(-220px)}
   100%{transform:translateX(calc(100vw + 260px))}
 }
 
-/* ---------- FLIGHT screen ---------- */
+/* FLIGHT SCREEN (airport board + details) */
 .flight-wrap{
   width:100%;
   max-width:420px;
@@ -119,86 +128,44 @@ button{
   padding:14px 12px;
   border:1px solid var(--line);
   border-radius:14px;
-  background:var(--panel);
+  background:rgba(255,255,255,.02);
 }
+
 .routeTop{
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
   gap:12px;
-  
-
-  align-items:center;
-  flex-wrap:nowrap;
 }
-
-
-/* Route flaps (IATA) */
-.routeFlaps{display:flex;align-items:center;gap:6px;max-width:100%;flex:1 1 240px
-  flex:1 1 auto;
-  min-width:0;
-}
-
-.rflap{
-  width:52px;height:70px;
-  background:#111;
-  border:1px solid var(--line);
-  border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-}
-.rface{
+.bigRoute{
+  font-size:44px;
   font-weight:900;
-  font-size:46px;
+  letter-spacing:.10em;
   line-height:1;
-  letter-spacing:.06em;
 }
-.rarrow{
-  font-size:38px;
-  margin:0 10px;
-  transform:translateY(-2px);
-  opacity:.9;
-}
-
 .rightStack{
   display:flex;
   flex-direction:column;
   align-items:flex-end;
   gap:6px;
   margin-top:2px;
-  flex:0 0 auto;
-  min-width:72px;
-  max-width:110px;
-
-  flex:0 0 auto;
-  white-space:nowrap;
 }
-
 .topCallsign{
-  font-size:14px;
+  font-size:18px;
   font-weight:900;
-  letter-spacing:.06em;
+  letter-spacing:.14em;
 }
-
-
 .modelTag{
-  font-size:13px;
-  letter-spacing:.05em;
+  font-size:16px;
+  color:var(--muted);
+  letter-spacing:.12em;
+  font-weight:800;
 }
-
-
-
 .airlineLine{
   margin-top:10px;
   font-size:12px;
   color:var(--muted);
   letter-spacing:.10em;
-  min-height:16px;
-}
-.err{
-  font-size:12px;
-  color:#ffb4b4;
-  letter-spacing:.10em;
-  text-align:right;
   min-height:16px;
 }
 
@@ -207,16 +174,17 @@ button{
   width:100%;
   border:1px solid var(--line);
   border-radius:14px;
-  background:var(--panel);
+  background:rgba(255,255,255,.02);
   padding:12px;
 }
 .details.active{display:block}
+
 .meta{
   font-size:12px;
   color:var(--muted);
   line-height:1.55;
 }
-.meta b{color:var(--fg); font-weight:900}
+.meta b{color:var(--fg); font-weight:800}
 
 .routeLines{
   margin-top:10px;
@@ -235,17 +203,13 @@ button{
   letter-spacing:.02em;
   margin-top:3px;
 }
-.arrow2{color:var(--muted); font-size:16px; transform:translateY(18px)}
-
-/* Small screens (Pi 320x480) */
-@media (max-width: 380px){
-  .flap{width:62px;height:88px}
-  .flap .face{font-size:60px}
-  .rflap{width:44px;height:60px}
-  .rface{font-size:40px}
-  .rarrow{font-size:34px;margin:0 8px}
-  .topCallsign{font-size:16px}
-  .modelTag{font-size:14px}
+.arrow{color:var(--muted); font-size:16px; transform:translateY(18px)}
+.err{
+  font-size:12px;
+  color:#ffb4b4;
+  letter-spacing:.10em;
+  text-align:right;
+  min-height:16px;
 }
 </style>
 </head>
@@ -259,6 +223,7 @@ button{
     <div class="colon" id="c1">:</div>
     <div class="flap"></div><div class="flap"></div>
   </div>
+
   <div class="date" id="date"></div>
 
   <div class="btnrow">
@@ -266,13 +231,14 @@ button{
   </div>
 </section>
 
-<!-- plane overlay -->
+<!-- Plane animation overlay (shown on clock) -->
 <div class="planeStage" aria-hidden="true">
   <div class="planeLane">
-    <!-- top-down silhouette white -->
     <svg class="plane" id="planeSvg" viewBox="0 0 128 128">
-      <path fill="#ffffff" d="M62 6c-7 0-12 6-12 13v26L16 60c-2 1-3 3-3 5v8c0 2 2 4 4 4l33-6v20L35 103c-1 1-2 2-2 4v7c0 2 2 4 4 3l25-9v12c0 4 3 8 6 8s6-4 6-8v-12l25 9c2 1 4-1 4-3v-7c0-2-1-3-2-4L78 91V71l33 6c2 0 4-2 4-4v-8c0-2-1-4-3-5L78 45V19c0-7-5-13-12-13zm0 52c2 0 4 2 4 4s-2 4-4 4-4-2-4-4 2-4 4-4z"/>
-    </svg>
+    <path fill="#f2f2f2" d="M4 22c0-1.6 1.3-3 3-3h28l20-16c1.1-.9 2.5-1.4 3.9-1.4H66c1.5 0 2.9.8 3.7 2L83 17h30c4.1 0 7 2.5 7 6s-2.9 6-7 6H83l-13.3 13.2c-.8 1.2-2.2 2-3.7 2h-7.1c-1.4 0-2.8-.5-3.9-1.4L35 27H7c-1.7 0-3-1.3-3-3zm40-3 14 12h7.2l9.8-8.5V18H65.2L58 9.5h-4.6L44 19z"/>
+    <path fill="#f2f2f2" opacity=".9" d="M26 25l14 11h-8l-18-11z"/>
+    <path fill="#f2f2f2" opacity=".9" d="M26 15l14-11h-8L14 15z"/>
+  </svg>
   </div>
 </div>
 
@@ -282,22 +248,12 @@ button{
 
     <div class="routeRow" id="routeRow" title="Apri dettagli">
       <div class="routeTop">
-
-        <div class="routeFlaps" id="routeFlaps">
-          <div class="rflap"><div class="rface" id="o0">-</div></div>
-          <div class="rflap"><div class="rface" id="o1">-</div></div>
-          <div class="rflap"><div class="rface" id="o2">-</div></div>
-          <div class="rarrow">→</div>
-          <div class="rflap"><div class="rface" id="d0">-</div></div>
-          <div class="rflap"><div class="rface" id="d1">-</div></div>
-          <div class="rflap"><div class="rface" id="d2">-</div></div>
-        </div>
+        <div class="bigRoute" id="iataRoute">--- → ---</div>
 
         <div class="rightStack">
           <div class="topCallsign" id="topCallsign">—</div>
           <div class="modelTag" id="topModel">—</div>
         </div>
-
       </div>
 
       <div class="airlineLine" id="topAirline">—</div>
@@ -315,7 +271,7 @@ button{
           DA
           <b id="fromTxt">N/D</b>
         </div>
-        <div class="arrow2">➜</div>
+        <div class="arrow">➜</div>
         <div class="side" style="text-align:right">
           A
           <b id="toTxt">N/D</b>
@@ -339,12 +295,10 @@ button{
 <script>
 const $ = (id)=>document.getElementById(id);
 
-/* ---------- screens ---------- */
+// ----- Screen switching -----
 const clockEl = $("clock");
 const flightEl = $("flight");
-
 $("btnShow").onclick = () => { showFlight(); refreshFlight(); };
-
 $("btnBack").onclick = () => showClock();
 $("btnBack2").onclick = () => showClock();
 $("btnRefresh").onclick = () => refreshFlight();
@@ -358,7 +312,7 @@ function openDetails(){ $("details").classList.add("active"); $("bottomBtns").st
 function closeDetails(){ $("details").classList.remove("active"); $("bottomBtns").style.display="flex"; }
 function toggleDetails(){ $("details").classList.contains("active") ? closeDetails() : openDetails(); }
 
-/* ---------- clock logic ---------- */
+// ----- CLOCK -----
 function makeFace(n, cls){
   const d=document.createElement("div");
   d.className="face " + cls;
@@ -395,20 +349,7 @@ function tick(){
 setInterval(tick, 1000);
 tick();
 
-/* ---------- helpers ---------- */
-function getIata(x){
-  return (x && (x.iata || x.iata_code)) ? (x.iata || x.iata_code) : "---";
-}
-function setRouteFlaps(o,d){
-  const O=(o||"---").padEnd(3,"-").slice(0,3).toUpperCase();
-  const D=(d||"---").padEnd(3,"-").slice(0,3).toUpperCase();
-  for(let i=0;i<3;i++){
-    const oe = document.getElementById("o"+i);
-    const de = document.getElementById("d"+i);
-    if(oe) oe.textContent = O[i];
-    if(de) de.textContent = D[i];
-  }
-}
+// ----- Flight data helpers -----
 function fmtAirport(x){
   if(!x) return "N/D";
   const m = x.municipality || "—";
@@ -416,26 +357,26 @@ function fmtAirport(x){
   const i = x.iata || x.iata_code || "";
   return i ? `${m} — ${n} (${i})` : `${m} — ${n}`;
 }
+function getIata(x){
+  return (x && (x.iata || x.iata_code)) ? (x.iata || x.iata_code) : "---";
+}
 function cleanAirlineName(name){
   if(!name) return "—";
   const n = String(name).trim();
-  const bad = ["transit","company","unknown","n/a","generic"];
+  const bad = ["transit", "company", "unknown", "n/a", "generic"];
   if(bad.some(w => n.toLowerCase().includes(w))) return "—";
   return n;
 }
 
-/* ---------- apply plane to UI ---------- */
+// Fill Flight UI from a plane object (shared by refresh + auto reveal)
 function applyPlaneToFlightUI(p){
-  // IMPORTANT: se abbiamo un plane, l’errore va sempre pulito
-  $("flightErr").textContent = "";
-
   const oi = getIata(p.from);
   const di = getIata(p.to);
   const cs = (p.callsign_iata || p.callsign || "—");
   const model = (p.aircraft_model || "—");
   const airline = cleanAirlineName(p.airline_name);
 
-  setRouteFlaps(oi, di);
+  $("iataRoute").textContent = `${oi} → ${di}`;
   $("topCallsign").textContent = cs;
   $("topModel").textContent = model;
   $("topAirline").textContent = airline;
@@ -446,7 +387,7 @@ function applyPlaneToFlightUI(p){
   $("toTxt").textContent = fmtAirport(p.to);
 }
 
-/* ---------- fetch logic ---------- */
+// ----- Refresh flight (manual / show flight) -----
 let rotateIdx = 0;
 function pickFeatured(planes){
   if(!planes || !planes.length) return null;
@@ -458,6 +399,7 @@ function pickFeatured(planes){
 }
 
 async function refreshFlight(){
+  $("flightErr").textContent = "";
   try{
     const r = await fetch("/api/planes", { cache:"no-store" });
     if(!r.ok) throw new Error("API error");
@@ -465,9 +407,8 @@ async function refreshFlight(){
     const p = pickFeatured(planes);
 
     if(!p){
-      // qui ha senso mostrare NESSUN AEREO
       $("flightErr").textContent = "NESSUN AEREO";
-      setRouteFlaps("---","---");
+      $("iataRoute").textContent = "--- → ---";
       $("topCallsign").textContent = "—";
       $("topModel").textContent = "—";
       $("topAirline").textContent = "—";
@@ -486,7 +427,7 @@ async function refreshFlight(){
   }
 }
 
-/* ---------- auto detect on clock ---------- */
+// ----- Auto-detect on clock: animate plane then open flight page -----
 let isAnimating = false;
 let lastSeenKey = "";
 
@@ -504,19 +445,21 @@ function runPlaneAnimationThenOpen(p){
   const plane = $("planeSvg");
   isAnimating = true;
 
+  // restart CSS animation
   plane.classList.remove("fly");
   void plane.offsetWidth;
   plane.classList.add("fly");
 
-  // a metà animazione apri Flight con dati
+  // halfway through the flight, switch to FLIGHT and show data
   setTimeout(() => {
     applyPlaneToFlightUI(p);
     showFlight();
     isAnimating = false;
-  }, 3250); // metà di 6.5s
+  }, 2400); // half of 4.8s
 }
 
 async function pollPlanes(){
+  // only poll while on clock
   if(!clockEl.classList.contains("active")) return;
   if(isAnimating) return;
 
@@ -533,12 +476,9 @@ async function pollPlanes(){
       runPlaneAnimationThenOpen(p);
     }
   }catch(e){
-    // ignore
+    // ignore on clock
   }
 }
-
-// init defaults
-setRouteFlaps("---","---");
 
 // first check after 8s, then every 60s
 setTimeout(pollPlanes, 8000);
