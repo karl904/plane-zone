@@ -76,29 +76,41 @@ button{
 
 /* PLANE ANIMATION (clock overlay) */
 .planeStage{
-  position:absolute;
+  position:fixed;
   left:0; right:0;
-  top:54%;
-  height:56px;
+  top:18px;
+  bottom:18px;
   pointer-events:none;
   overflow:hidden;
+  z-index:9999;
 }
+
+/* l’aereo passa proprio sopra l’orario */
+.planeLane{
+  position:absolute;
+  left:0; right:0;
+  top:50%;
+  transform:translateY(-64px);
+  height:64px;
+}
+
 .plane{
   position:absolute;
-  top:10px;
-  left:-120px;
-  width:96px;
-  height:36px;
+  top:8px;
+  left:-180px;
+  width:110px;
+  height:110px;
   opacity:0;
-  filter: drop-shadow(0 10px 16px rgba(0,0,0,.65));
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,.55));
 }
+
 .plane.fly{
   opacity:1;
-  animation:fly 4.8s ease-in-out forwards;
+  animation:fly 6.5s linear forwards;
 }
-@keyframes fly{
-  0%{transform:translateX(-140px)}
-  100%{transform:translateX(calc(100vw + 220px))}
+ fly{
+  0%{transform:translateX(-220px)}
+  100%{transform:translateX(calc(100vw + 260px))}
 }
 
 /* FLIGHT SCREEN (airport board + details) */
@@ -221,12 +233,13 @@ button{
 
 <!-- Plane animation overlay (shown on clock) -->
 <div class="planeStage" aria-hidden="true">
-  <!-- cleaner airplane silhouette -->
-  <svg class="plane" id="planeSvg" viewBox="0 0 120 40">
+  <div class="planeLane">
+    <svg class="plane" id="planeSvg" viewBox="0 0 128 128">
     <path fill="#f2f2f2" d="M4 22c0-1.6 1.3-3 3-3h28l20-16c1.1-.9 2.5-1.4 3.9-1.4H66c1.5 0 2.9.8 3.7 2L83 17h30c4.1 0 7 2.5 7 6s-2.9 6-7 6H83l-13.3 13.2c-.8 1.2-2.2 2-3.7 2h-7.1c-1.4 0-2.8-.5-3.9-1.4L35 27H7c-1.7 0-3-1.3-3-3zm40-3 14 12h7.2l9.8-8.5V18H65.2L58 9.5h-4.6L44 19z"/>
     <path fill="#f2f2f2" opacity=".9" d="M26 25l14 11h-8l-18-11z"/>
     <path fill="#f2f2f2" opacity=".9" d="M26 15l14-11h-8L14 15z"/>
   </svg>
+  </div>
 </div>
 
 <!-- FLIGHT -->
